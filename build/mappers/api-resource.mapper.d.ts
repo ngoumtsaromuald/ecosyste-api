@@ -1,0 +1,67 @@
+import { ApiResource, Category, BusinessHour, ResourceImage } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
+import { ApiResourceDomain } from '../domain/models';
+import { CreateApiResourceDto, UpdateApiResourceDto, ApiResourceResponseDto } from '../dto';
+type ApiResourceWithRelations = ApiResource & {
+    category: Category;
+    hours?: BusinessHour[];
+    images?: ResourceImage[];
+};
+export declare class ApiResourceMapper {
+    static toDomain(prismaResource: ApiResource): ApiResourceDomain;
+    static toResponseDto(domain: ApiResourceDomain, category: Category, businessHours?: BusinessHour[], images?: ResourceImage[]): ApiResourceResponseDto;
+    static toResponseDtoFromPrisma(prismaResource: ApiResourceWithRelations): ApiResourceResponseDto;
+    static fromCreateDto(dto: CreateApiResourceDto, userId: string): ApiResourceDomain;
+    static toPrismaCreate(domain: ApiResourceDomain): {
+        userId: string;
+        name: string;
+        slug: string;
+        description: string | null;
+        resourceType: string;
+        categoryId: string;
+        addressLine1: string | null;
+        addressLine2: string | null;
+        city: string | null;
+        region: string | null;
+        postalCode: string | null;
+        country: string;
+        latitude: Decimal | null;
+        longitude: Decimal | null;
+        phone: string | null;
+        email: string | null;
+        website: string | null;
+        status: string;
+        plan: string;
+        verified: boolean;
+        metaTitle: string | null;
+        metaDescription: string | null;
+        publishedAt: Date | null;
+    };
+    static toPrismaUpdate(domain: ApiResourceDomain): Partial<{
+        name: string;
+        slug: string;
+        description: string | null;
+        resourceType: string;
+        categoryId: string;
+        addressLine1: string | null;
+        addressLine2: string | null;
+        city: string | null;
+        region: string | null;
+        postalCode: string | null;
+        country: string;
+        latitude: Decimal | null;
+        longitude: Decimal | null;
+        phone: string | null;
+        email: string | null;
+        website: string | null;
+        status: string;
+        plan: string;
+        verified: boolean;
+        metaTitle: string | null;
+        metaDescription: string | null;
+        publishedAt: Date | null;
+        updatedAt: Date;
+    }>;
+    static applyUpdateDto(domain: ApiResourceDomain, dto: UpdateApiResourceDto): ApiResourceDomain;
+}
+export {};
