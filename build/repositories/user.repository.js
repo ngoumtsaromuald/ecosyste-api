@@ -11,8 +11,8 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserRepository = void 0;
 const common_1 = require("@nestjs/common");
+const client_1 = require("@prisma/client");
 const prisma_service_1 = require("../config/prisma.service");
-const enums_1 = require("../domain/enums");
 let UserRepository = class UserRepository {
     constructor(prisma) {
         this.prisma = prisma;
@@ -36,10 +36,10 @@ let UserRepository = class UserRepository {
         return this.prisma.user.create({
             data: {
                 ...data,
-                userType: data.userType || enums_1.UserType.INDIVIDUAL,
-                plan: data.plan || enums_1.Plan.FREE,
+                userType: data.userType || client_1.UserType.INDIVIDUAL,
+                plan: data.plan || client_1.Plan.FREE,
                 apiQuota: data.apiQuota || 1000,
-                pricingTier: data.pricingTier || enums_1.PricingTier.STANDARD,
+                pricingTier: data.pricingTier || client_1.PricingTier.STANDARD,
             },
         });
     }
@@ -87,13 +87,13 @@ let UserRepository = class UserRepository {
         return { users: users, total };
     }
     async findIndividualUsers(pagination = {}) {
-        return this.findByType(enums_1.UserType.INDIVIDUAL, pagination);
+        return this.findByType(client_1.UserType.INDIVIDUAL, pagination);
     }
     async findBusinessUsers(pagination = {}) {
-        return this.findByType(enums_1.UserType.BUSINESS, pagination);
+        return this.findByType(client_1.UserType.BUSINESS, pagination);
     }
     async findAdminUsers(pagination = {}) {
-        return this.findByType(enums_1.UserType.ADMIN, pagination);
+        return this.findByType(client_1.UserType.ADMIN, pagination);
     }
     async findByPlan(plan, pagination = {}) {
         const { limit = 20, offset = 0 } = pagination;

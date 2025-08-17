@@ -1,0 +1,15 @@
+ROMAPI - Vérification de votre adresse email
+
+Bonjour {{name}},
+
+Merci de vous être inscrit sur ROMAPI ! Pour finaliser la création de votre compte, veuillez vérifier votre adresse email en cliquant sur le lien ci-dessous :
+
+{{verificationUrl}}
+
+Note de sécurité : Ce lien de vérification expirera dans 24 heures pour votre sécurité. Si vous n'avez pas demandé cette vérification, vous pouvez ignorer cet email.
+
+---
+Cet email a été envoyé par ROMAPI.
+Si vous avez des questions, contactez-nous à support@romapi.com
+
+© 2024 ROMAPI. Tous droits réservés.

@@ -33,6 +33,8 @@ export interface RedisConfig {
 export interface JwtConfig {
   secret: string;
   expiresIn: string;
+  refreshSecret: string;
+  refreshExpiresIn: string;
 }
 
 export interface ApiConfig {
@@ -115,6 +117,8 @@ export default (): AppConfig => {
     jwt: {
       secret: process.env.JWT_SECRET || (nodeEnv === 'production' ? (() => { throw new Error('JWT_SECRET is required in production'); })() : 'dev-secret-key'),
       expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+      refreshSecret: process.env.REFRESH_TOKEN_SECRET || (nodeEnv === 'production' ? (() => { throw new Error('REFRESH_TOKEN_SECRET is required in production'); })() : 'dev-refresh-secret'),
+      refreshExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
     },
 
     // API configuration

@@ -1,6 +1,5 @@
-import { Prisma, User } from '@prisma/client';
+import { Prisma, User, UserType, Plan, PricingTier } from '@prisma/client';
 import { PrismaService } from '../config/prisma.service';
-import { UserType, Plan, PricingTier } from '../domain/enums';
 import { PaginationOptions } from './types';
 export interface UserFindManyParams {
     where?: Prisma.UserWhereInput;
@@ -11,12 +10,14 @@ export interface UserFindManyParams {
 }
 export interface CreateUserData {
     email: string;
-    passwordHash: string;
+    passwordHash?: string | null;
     name: string;
     userType?: UserType;
     plan?: Plan;
     apiQuota?: number;
     pricingTier?: PricingTier;
+    emailVerified?: boolean;
+    emailVerifiedAt?: Date;
 }
 export interface UpdateUserData {
     email?: string;
@@ -27,6 +28,11 @@ export interface UpdateUserData {
     apiQuota?: number;
     apiUsage?: number;
     pricingTier?: PricingTier;
+    loginAttempts?: number;
+    lockedUntil?: Date | null;
+    lastLoginAt?: Date;
+    emailVerified?: boolean;
+    emailVerifiedAt?: Date;
 }
 export interface UserWithStats extends User {
     _count?: {

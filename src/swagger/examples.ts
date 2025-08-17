@@ -2,7 +2,11 @@
  * Comprehensive examples for Swagger API documentation
  */
 
+import { AuthSwaggerExamples } from './auth-examples';
+
 export const SwaggerExamples = {
+  // Include auth examples
+  ...AuthSwaggerExamples,
   // API Resource Examples
   ApiResource: {
     CreateRequest: {

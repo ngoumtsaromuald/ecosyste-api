@@ -17,6 +17,7 @@ const database_module_1 = require("./config/database.module");
 const redis_module_1 = require("./config/redis.module");
 const cache_module_1 = require("./config/cache.module");
 const logger_module_1 = require("./config/logger.module");
+const auth_module_1 = require("./auth/auth.module");
 const api_resource_controller_1 = require("./controllers/api-resource.controller");
 const category_controller_1 = require("./controllers/category.controller");
 const metrics_controller_1 = require("./controllers/metrics.controller");
@@ -53,6 +54,7 @@ exports.AppModule = AppModule = __decorate([
             redis_module_1.RedisModule,
             cache_module_1.CacheModule,
             logger_module_1.LoggerModule,
+            auth_module_1.AuthModule,
         ],
         controllers: [app_controller_1.AppController, api_resource_controller_1.ApiResourceController, category_controller_1.CategoryController, metrics_controller_1.MetricsController, health_controller_1.HealthController],
         providers: [

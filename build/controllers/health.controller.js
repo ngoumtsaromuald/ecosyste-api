@@ -51,7 +51,7 @@ let HealthController = class HealthController {
                 services,
                 metrics: {
                     memoryUsage: process.memoryUsage(),
-                    cpuUsage: process.cpuUsage(),
+                    cpuUsage: this.serializeCpuUsage(process.cpuUsage()),
                 },
             };
             this.logger.log(`Health check completed: ${status}`, {
@@ -209,7 +209,7 @@ let HealthController = class HealthController {
                 this.prisma.$queryRaw `SELECT pg_size_pretty(pg_database_size(current_database())) as size`,
             ]);
             return {
-                activeConnections: connectionCount[0]?.connections || 0,
+                activeConnections: Number(connectionCount[0]?.connections || 0),
                 databaseSize: databaseSize[0]?.size || 'unknown',
             };
         }
@@ -241,6 +241,12 @@ let HealthController = class HealthController {
             return 'degraded';
         }
         return 'healthy';
+    }
+    serializeCpuUsage(cpuUsage) {
+        return {
+            user: Number(cpuUsage.user),
+            system: Number(cpuUsage.system),
+        };
     }
 };
 exports.HealthController = HealthController;

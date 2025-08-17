@@ -15,7 +15,7 @@ export interface HealthCheckResult {
     };
     metrics?: {
         memoryUsage: NodeJS.MemoryUsage;
-        cpuUsage: NodeJS.CpuUsage;
+        cpuUsage: Record<string, number>;
     };
 }
 export interface ServiceHealth {
@@ -49,4 +49,5 @@ export declare class HealthController {
     private getDatabaseStats;
     private extractServiceHealth;
     private determineOverallStatus;
+    private serializeCpuUsage;
 }

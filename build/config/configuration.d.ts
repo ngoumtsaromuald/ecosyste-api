@@ -30,6 +30,8 @@ export interface RedisConfig {
 export interface JwtConfig {
     secret: string;
     expiresIn: string;
+    refreshSecret: string;
+    refreshExpiresIn: string;
 }
 export interface ApiConfig {
     prefix: string;

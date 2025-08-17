@@ -1,0 +1,31 @@
+import { INestApplication } from '@nestjs/common';
+export declare function setupAuthSwagger(app: INestApplication): void;
+export declare const AuthSwaggerTags: {
+    readonly AUTHENTICATION: "Authentication";
+    readonly API_KEYS: "API Keys";
+    readonly OAUTH: "OAuth";
+    readonly USERS: "Users";
+    readonly SECURITY: "Security";
+};
+export declare const AuthSwaggerOperations: {
+    readonly REGISTER: "register";
+    readonly LOGIN: "login";
+    readonly REFRESH_TOKEN: "refreshToken";
+    readonly LOGOUT: "logout";
+    readonly FORGOT_PASSWORD: "forgotPassword";
+    readonly RESET_PASSWORD: "resetPassword";
+    readonly GET_PROFILE: "getProfile";
+    readonly LIST_API_KEYS: "listApiKeys";
+    readonly CREATE_API_KEY: "createApiKey";
+    readonly UPDATE_API_KEY: "updateApiKey";
+    readonly REVOKE_API_KEY: "revokeApiKey";
+    readonly REACTIVATE_API_KEY: "reactivateApiKey";
+    readonly GET_API_KEY_STATS: "getApiKeyStats";
+    readonly INITIATE_OAUTH: "initiateOAuth";
+    readonly OAUTH_CALLBACK: "oauthCallback";
+    readonly LINK_OAUTH_ACCOUNT: "linkOAuthAccount";
+    readonly GET_OAUTH_ACCOUNTS: "getOAuthAccounts";
+    readonly UNLINK_OAUTH_ACCOUNT: "unlinkOAuthAccount";
+    readonly INITIATE_OAUTH_LINKING: "initiateOAuthLinking";
+    readonly REFRESH_OAUTH_TOKENS: "refreshOAuthTokens";
+};

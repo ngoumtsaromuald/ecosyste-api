@@ -1,0 +1,29 @@
+ROMAPI - Avertissement de quota API
+
+Bonjour {{name}},
+
+Nous vous informons que vous approchez de la limite de votre quota API mensuel.
+
+UTILISATION ACTUELLE : {{usagePercentage}}% de votre quota mensuel
+
+Statistiques :
+- Requêtes utilisées : {{usedRequests}}
+- Quota total : {{totalRequests}}
+- Requêtes restantes : {{remainingRequests}}
+- Renouvellement : {{resetDate}}
+
+Votre quota se renouvellera automatiquement le {{resetDate}}.
+
+{{#if isNearLimit}}
+ATTENTION : Une fois votre quota épuisé, vos requêtes API seront temporairement bloquées jusqu'au prochain renouvellement. Pour éviter toute interruption de service, nous vous recommandons de surveiller votre utilisation ou de considérer une mise à niveau de votre plan.
+{{/if}}
+
+Actions disponibles :
+- Voir mon tableau de bord : {{dashboardUrl}}
+- Mettre à niveau mon plan : {{upgradeUrl}}
+
+---
+Cet email a été envoyé par ROMAPI.
+Si vous avez des questions, contactez-nous à support@romapi.com
+
+© 2024 ROMAPI. Tous droits réservés.

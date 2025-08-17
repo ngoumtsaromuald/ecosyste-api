@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SwaggerExamples = void 0;
+const auth_examples_1 = require("./auth-examples");
 exports.SwaggerExamples = {
+    ...auth_examples_1.AuthSwaggerExamples,
     ApiResource: {
         CreateRequest: {
             name: 'Restaurant Le Palais',

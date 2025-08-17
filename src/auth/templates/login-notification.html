@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouvelle connexion détectée - ROMAPI</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #1f2937;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .info-box {
+            background-color: #f3f4f6;
+            border-left: 4px solid #2563eb;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #374151;
+        }
+        .info-value {
+            color: #6b7280;
+        }
+        .button {
+            display: inline-block;
+            background-color: #dc2626;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #b91c1c;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 14px;
+            color: #6b7280;
+            text-align: center;
+        }
+        .security-note {
+            background-color: #fffbeb;
+            border: 1px solid #f59e0b;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ROMAPI</div>
+            <h1 class="title">Nouvelle connexion détectée</h1>
+        </div>
+        
+        <div class="content">
+            <p>Bonjour <strong>{{name}}</strong>,</p>
+            
+            <p>Nous avons détecté une nouvelle connexion à votre compte ROMAPI. Voici les détails de cette connexion :</p>
+            
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">Date et heure :</span>
+                    <span class="info-value">{{loginTime}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Adresse IP :</span>
+                    <span class="info-value">{{ipAddress}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Localisation :</span>
+                    <span class="info-value">{{location}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Appareil :</span>
+                    <span class="info-value">{{device}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Navigateur :</span>
+                    <span class="info-value">{{browser}}</span>
+                </div>
+            </div>
+            
+            <p>Si cette connexion provient de vous, aucune action n'est requise.</p>
+            
+            <div class="security-note">
+                <strong>Cette connexion ne provient pas de vous ?</strong><br>
+                Si vous ne reconnaissez pas cette activité, votre compte pourrait être compromis. Nous vous recommandons de :
+                <ul>
+                    <li>Changer immédiatement votre mot de passe</li>
+                    <li>Vérifier vos paramètres de sécurité</li>
+                    <li>Révoquer toutes les sessions actives</li>
+                </ul>
+                
+                <div style="text-align: center; margin-top: 15px;">
+                    <a href="{{securityUrl}}" class="button">Sécuriser mon compte</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Cet email a été envoyé par ROMAPI.<br>
+            Si vous avez des questions, contactez-nous à support@romapi.com</p>
+            <p>&copy; 2024 ROMAPI. Tous droits réservés.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,27 @@
+ROMAPI - Nouvelle connexion détectée
+
+Bonjour {{name}},
+
+Nous avons détecté une nouvelle connexion à votre compte ROMAPI. Voici les détails de cette connexion :
+
+Date et heure : {{loginTime}}
+Adresse IP : {{ipAddress}}
+Localisation : {{location}}
+Appareil : {{device}}
+Navigateur : {{browser}}
+
+Si cette connexion provient de vous, aucune action n'est requise.
+
+Cette connexion ne provient pas de vous ?
+Si vous ne reconnaissez pas cette activité, votre compte pourrait être compromis. Nous vous recommandons de :
+- Changer immédiatement votre mot de passe
+- Vérifier vos paramètres de sécurité
+- Révoquer toutes les sessions actives
+
+Sécurisez votre compte : {{securityUrl}}
+
+---
+Cet email a été envoyé par ROMAPI.
+Si vous avez des questions, contactez-nous à support@romapi.com
+
+© 2024 ROMAPI. Tous droits réservés.

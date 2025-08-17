@@ -1,0 +1,141 @@
+version: '3.8'
+
+# Auth System Production Override
+# Use with: docker-compose -f docker-compose.prod.yml -f docker-compose.auth-prod.yml up -d
+
+services:
+  # Redis optimized for auth sessions
+  redis:
+    volumes:
+      - redis_auth_data:/data
+      - ./config/redis/redis-auth.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # Application with auth-specific configuration
+  app:
+    environment:
+      # Auth-specific environment variables
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES: ${JWT_ACCESS_EXPIRES:-15m}
+      JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
+      
+      # Password security
+      BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-12}
+      PASSWORD_RESET_EXPIRES: ${PASSWORD_RESET_EXPIRES:-1h}
+      EMAIL_VERIFICATION_EXPIRES: ${EMAIL_VERIFICATION_EXPIRES:-24h}
+      MAX_LOGIN_ATTEMPTS: ${MAX_LOGIN_ATTEMPTS:-5}
+      ACCOUNT_LOCKOUT_DURATION: ${ACCOUNT_LOCKOUT_DURATION:-15m}
+      
+      # Email configuration
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
+      SMTP_TLS_REJECT_UNAUTHORIZED: ${SMTP_TLS_REJECT_UNAUTHORIZED:-true}
+      SMTP_TLS_MIN_VERSION: ${SMTP_TLS_MIN_VERSION:-TLSv1.2}
+      
+      # OAuth2 providers
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID}
+      LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET}
+      
+      # Frontend URLs
+      FRONTEND_URL: ${FRONTEND_URL}
+      OAUTH_CALLBACK_URL: ${OAUTH_CALLBACK_URL}
+      OAUTH_SUCCESS_REDIRECT: ${OAUTH_SUCCESS_REDIRECT}
+      OAUTH_ERROR_REDIRECT: ${OAUTH_ERROR_REDIRECT}
+      
+      # Rate limiting
+      RATE_LIMIT_TTL: ${RATE_LIMIT_TTL:-60000}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-1000}
+      API_KEY_RATE_LIMIT_DEFAULT: ${API_KEY_RATE_LIMIT_DEFAULT:-10000}
+      USER_RATE_LIMIT_DEFAULT: ${USER_RATE_LIMIT_DEFAULT:-1000}
+      IP_RATE_LIMIT_DEFAULT: ${IP_RATE_LIMIT_DEFAULT:-100}
+      
+      # API Keys
+      API_KEY_PREFIX: ${API_KEY_PREFIX:-rk_prod_}
+      API_KEY_DEFAULT_EXPIRY_DAYS: ${API_KEY_DEFAULT_EXPIRY_DAYS:-365}
+      API_KEY_MAX_PER_USER: ${API_KEY_MAX_PER_USER:-10}
+      
+      # Security
+      SECURE_COOKIES: ${SECURE_COOKIES:-true}
+      SAME_SITE_COOKIES: ${SAME_SITE_COOKIES:-strict}
+      
+      # Audit logging
+      AUDIT_LOG_ENABLED: ${AUDIT_LOG_ENABLED:-true}
+      AUDIT_LOG_LEVEL: ${AUDIT_LOG_LEVEL:-info}
+      AUDIT_LOG_RETENTION_DAYS: ${AUDIT_LOG_RETENTION_DAYS:-90}
+      SECURITY_LOG_FILE: ${SECURITY_LOG_FILE:-/app/logs/security/auth.log}
+      SECURITY_LOG_DIR: ${SECURITY_LOG_DIR:-/app/logs/security}
+      
+      # Alert thresholds
+      FAILED_LOGIN_ALERT_THRESHOLD: ${FAILED_LOGIN_ALERT_THRESHOLD:-10}
+      RATE_LIMIT_ALERT_THRESHOLD: ${RATE_LIMIT_ALERT_THRESHOLD:-100}
+      SUSPICIOUS_ACTIVITY_WINDOW: ${SUSPICIOUS_ACTIVITY_WINDOW:-300}
+      CRITICAL_EVENTS_ALERT_THRESHOLD: ${CRITICAL_EVENTS_ALERT_THRESHOLD:-50}
+      
+      # Session management
+      SESSION_TTL: ${SESSION_TTL:-86400}
+      REFRESH_TOKEN_TTL: ${REFRESH_TOKEN_TTL:-604800}
+      
+    volumes:
+      - ./logs:/app/logs
+      - ./logs/security:/app/logs/security
+      - ./backups:/app/backups
+      - ./uploads:/app/uploads
+    
+    # Health check with auth-specific endpoint
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health", "&&", "curl", "-f", "http://localhost:3000/api/v1/auth/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Nginx with auth-specific configuration
+  nginx:
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./config/nginx/auth-locations.conf:/etc/nginx/conf.d/auth-locations.conf
+      - ./config/nginx/ssl:/etc/nginx/ssl
+      - ./logs/nginx:/var/log/nginx
+      - ./logs/security:/var/log/nginx/security
+    environment:
+      # Rate limiting at nginx level
+      NGINX_RATE_LIMIT_ZONE: "auth_limit:10m rate=10r/s"
+      NGINX_RATE_LIMIT_BURST: "20"
+      NGINX_RATE_LIMIT_DELAY: "10"
+
+volumes:
+  redis_auth_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/redis-auth
+
+networks:
+  default:
+    name: romapi-auth-network

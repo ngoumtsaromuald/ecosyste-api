@@ -18,7 +18,7 @@ export interface HealthCheckResult {
   };
   metrics?: {
     memoryUsage: NodeJS.MemoryUsage;
-    cpuUsage: NodeJS.CpuUsage;
+    cpuUsage: Record<string, number>;
   };
 }
 
@@ -147,7 +147,7 @@ export class HealthController {
         services,
         metrics: {
           memoryUsage: process.memoryUsage(),
-          cpuUsage: process.cpuUsage(),
+          cpuUsage: this.serializeCpuUsage(process.cpuUsage()),
         },
       };
 
@@ -359,7 +359,7 @@ export class HealthController {
       ]);
 
       return {
-        activeConnections: connectionCount[0]?.connections || 0,
+        activeConnections: Number(connectionCount[0]?.connections || 0),
         databaseSize: databaseSize[0]?.size || 'unknown',
       };
     } catch (error) {
@@ -397,5 +397,12 @@ export class HealthController {
     
     // All services are up
     return 'healthy';
+  }
+
+  private serializeCpuUsage(cpuUsage: NodeJS.CpuUsage): Record<string, number> {
+    return {
+      user: Number(cpuUsage.user),
+      system: Number(cpuUsage.system),
+    };
   }
 }

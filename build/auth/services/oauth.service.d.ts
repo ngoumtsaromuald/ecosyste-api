@@ -1,0 +1,34 @@
+import { ConfigService } from '@nestjs/config';
+import { OAuthRepository } from '../../repositories/oauth.repository';
+import { UserRepository } from '../../repositories/user.repository';
+import { JWTService } from './jwt.service';
+import { AuditService } from './audit.service';
+import { SessionService } from './session.service';
+import { OAuthProvider } from '@prisma/client';
+import { OAuthInitiateResponseDto, OAuthAccountResponseDto } from '../dto/oauth.dto';
+import { AuthResponseDto } from '../dto/auth-response.dto';
+import { Redis } from 'ioredis';
+export declare class OAuthService {
+    private readonly oauthRepository;
+    private readonly userRepository;
+    private readonly jwtService;
+    private readonly auditService;
+    private readonly sessionService;
+    private readonly configService;
+    private readonly redis;
+    constructor(oauthRepository: OAuthRepository, userRepository: UserRepository, jwtService: JWTService, auditService: AuditService, sessionService: SessionService, configService: ConfigService, redis: Redis);
+    initiateOAuth(provider: OAuthProvider, redirectUri: string, userId?: string): Promise<OAuthInitiateResponseDto>;
+    handleOAuthCallback(provider: OAuthProvider, code: string, state: string): Promise<AuthResponseDto>;
+    linkOAuthAccount(userId: string, provider: OAuthProvider, code: string, state: string): Promise<OAuthAccountResponseDto>;
+    unlinkOAuthAccount(userId: string, provider: OAuthProvider): Promise<void>;
+    getUserOAuthAccounts(userId: string): Promise<OAuthAccountResponseDto[]>;
+    refreshOAuthTokens(accountId: string): Promise<void>;
+    private getProviderConfig;
+    private buildAuthUrl;
+    private exchangeCodeForToken;
+    private refreshProviderToken;
+    private getUserInfoFromProvider;
+    private normalizeUserInfo;
+    private generateSecureState;
+    private validateOAuthState;
+}

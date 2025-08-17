@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avertissement de quota API - ROMAPI</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .title {
+            color: #1f2937;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .quota-box {
+            background-color: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .quota-percentage {
+            font-size: 48px;
+            font-weight: bold;
+            color: #d97706;
+            margin: 10px 0;
+        }
+        .quota-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .quota-fill {
+            height: 100%;
+            background-color: #f59e0b;
+            width: {{usagePercentage}}%;
+            transition: width 0.3s ease;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-item {
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #1d4ed8;
+        }
+        .button.upgrade {
+            background-color: #059669;
+        }
+        .button.upgrade:hover {
+            background-color: #047857;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 14px;
+            color: #6b7280;
+            text-align: center;
+        }
+        .warning-note {
+            background-color: #fef2f2;
+            border: 1px solid #f87171;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">ROMAPI</div>
+            <h1 class="title">Avertissement de quota API</h1>
+        </div>
+        
+        <div class="content">
+            <p>Bonjour <strong>{{name}}</strong>,</p>
+            
+            <p>Nous vous informons que vous approchez de la limite de votre quota API mensuel.</p>
+            
+            <div class="quota-box">
+                <div class="quota-percentage">{{usagePercentage}}%</div>
+                <p>de votre quota mensuel utilisé</p>
+                <div class="quota-bar">
+                    <div class="quota-fill"></div>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">{{usedRequests}}</div>
+                    <div class="stat-label">Requêtes utilisées</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{totalRequests}}</div>
+                    <div class="stat-label">Quota total</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{remainingRequests}}</div>
+                    <div class="stat-label">Requêtes restantes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{resetDate}}</div>
+                    <div class="stat-label">Renouvellement</div>
+                </div>
+            </div>
+            
+            <p>Votre quota se renouvellera automatiquement le <strong>{{resetDate}}</strong>.</p>
+            
+            {{#if isNearLimit}}
+            <div class="warning-note">
+                <strong>Attention :</strong> Une fois votre quota épuisé, vos requêtes API seront temporairement bloquées jusqu'au prochain renouvellement. Pour éviter toute interruption de service, nous vous recommandons de surveiller votre utilisation ou de considérer une mise à niveau de votre plan.
+            </div>
+            {{/if}}
+            
+            <div style="text-align: center;">
+                <a href="{{dashboardUrl}}" class="button">Voir mon tableau de bord</a>
+                <a href="{{upgradeUrl}}" class="button upgrade">Mettre à niveau mon plan</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Cet email a été envoyé par ROMAPI.<br>
+            Si vous avez des questions, contactez-nous à support@romapi.com</p>
+            <p>&copy; 2024 ROMAPI. Tous droits réservés.</p>
+        </div>
+    </div>
+</body>
+</html>

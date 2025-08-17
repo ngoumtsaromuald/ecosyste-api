@@ -8,6 +8,7 @@ import { DatabaseModule } from './config/database.module';
 import { RedisModule } from './config/redis.module';
 import { CacheModule } from './config/cache.module';
 import { LoggerModule } from './config/logger.module';
+import { AuthModule } from './auth/auth.module';
 import { ApiResourceController } from './controllers/api-resource.controller';
 import { CategoryController } from './controllers/category.controller';
 import { MetricsController } from './controllers/metrics.controller';
@@ -47,6 +48,7 @@ import configuration from './config/configuration';
     RedisModule,
     CacheModule,
     LoggerModule,
+    AuthModule,
   ],
   controllers: [AppController, ApiResourceController, CategoryController, MetricsController, HealthController],
   providers: [

@@ -13,19 +13,31 @@ datasource db {
 model User {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email        String   @unique
-  passwordHash String   @map("password_hash")
+  passwordHash String?  @map("password_hash") // Nullable for OAuth-only users
   name         String
   userType     UserType @default(INDIVIDUAL) @map("user_type")
   plan         Plan     @default(FREE)
   apiQuota     Int      @default(1000) @map("api_quota")
   apiUsage     Int      @default(0) @map("api_usage")
   pricingTier  PricingTier @default(STANDARD) @map("pricing_tier")
+  
+  // Auth specific fields
+  emailVerified    Boolean   @default(false) @map("email_verified")
+  emailVerifiedAt  DateTime? @map("email_verified_at")
+  lastLoginAt      DateTime? @map("last_login_at")
+  loginAttempts    Int       @default(0) @map("login_attempts")
+  lockedUntil      DateTime? @map("locked_until")
+  
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  apiResources  ApiResource[]
-  apiKeys       ApiKey[]
-  subscriptions Subscription[]
+  apiResources    ApiResource[]
+  apiKeys         ApiKey[]
+  subscriptions   Subscription[]
+  oauthAccounts   OAuthAccount[]
+  sessions        Session[]
+  auditLogs       AuditLog[]
+  passwordResets  PasswordReset[]
 
   @@map("users")
 }
@@ -174,6 +186,76 @@ model Subscription {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
+}
+
+model OAuthAccount {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String        @map("user_id") @db.Uuid
+  provider     OAuthProvider
+  providerId   String        @map("provider_id")
+  accessToken  String?       @map("access_token")
+  refreshToken String?       @map("refresh_token")
+  expiresAt    DateTime?     @map("expires_at")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@map("oauth_accounts")
+}
+
+model Session {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  refreshToken String    @map("refresh_token")
+  userAgent    String?   @map("user_agent")
+  ipAddress    String?   @map("ip_address") @db.Inet
+  isActive     Boolean   @default(true) @map("is_active")
+  expiresAt    DateTime  @map("expires_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  lastUsedAt   DateTime  @default(now()) @map("last_used_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@map("sessions")
+}
+
+model PasswordReset {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  token     String    @unique
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
+}
+
+model AuditLog {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  action    String
+  resource  String?
+  details   Json     @default("{}")
+  ipAddress String?  @map("ip_address") @db.Inet
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+enum OAuthProvider {
+  GOOGLE
+  GITHUB
+  LINKEDIN
 }
 
 enum UserType {
