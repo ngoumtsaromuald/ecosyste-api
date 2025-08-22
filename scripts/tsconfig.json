@@ -1,0 +1,32 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2020",
+    "lib": ["es2020"],
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "resolveJsonModule": true,
+    "baseUrl": "../",
+    "paths": {
+      "@/*": ["src/*"],
+      "@prisma/client": ["node_modules/@prisma/client"]
+    }
+  },
+  "include": [
+    "./**/*.ts",
+    "./types/**/*.d.ts",
+    "../src/**/*.ts",
+    "../prisma/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build"
+  ]
+}

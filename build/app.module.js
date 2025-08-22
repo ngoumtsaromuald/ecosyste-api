@@ -18,6 +18,7 @@ const redis_module_1 = require("./config/redis.module");
 const cache_module_1 = require("./config/cache.module");
 const logger_module_1 = require("./config/logger.module");
 const auth_module_1 = require("./auth/auth.module");
+const search_module_1 = require("./modules/search/search.module");
 const api_resource_controller_1 = require("./controllers/api-resource.controller");
 const category_controller_1 = require("./controllers/category.controller");
 const metrics_controller_1 = require("./controllers/metrics.controller");
@@ -33,6 +34,7 @@ const response_interceptor_1 = require("./interceptors/response.interceptor");
 const metrics_interceptor_1 = require("./interceptors/metrics.interceptor");
 const logging_interceptor_1 = require("./interceptors/logging.interceptor");
 const configuration_1 = require("./config/configuration");
+const elasticsearch_config_1 = require("./config/elasticsearch.config");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -41,7 +43,7 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
-                load: [configuration_1.default],
+                load: [configuration_1.default, elasticsearch_config_1.default],
                 envFilePath: ['.env.local', '.env'],
             }),
             throttler_1.ThrottlerModule.forRoot([
@@ -55,6 +57,7 @@ exports.AppModule = AppModule = __decorate([
             cache_module_1.CacheModule,
             logger_module_1.LoggerModule,
             auth_module_1.AuthModule,
+            search_module_1.SearchModule,
         ],
         controllers: [app_controller_1.AppController, api_resource_controller_1.ApiResourceController, category_controller_1.CategoryController, metrics_controller_1.MetricsController, health_controller_1.HealthController],
         providers: [

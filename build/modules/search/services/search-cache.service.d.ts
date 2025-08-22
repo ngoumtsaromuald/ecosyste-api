@@ -1,0 +1,31 @@
+import { ConfigService } from '@nestjs/config';
+import Redis from 'ioredis';
+export declare class SearchCacheService {
+    private readonly configService;
+    private readonly logger;
+    private readonly redis;
+    get redisClient(): Redis;
+    constructor(configService: ConfigService);
+    cacheSearchResults(key: string, results: any): Promise<void>;
+    getCachedSearchResults(key: string): Promise<any | null>;
+    cacheSuggestions(query: string, suggestions: any[]): Promise<void>;
+    getCachedSuggestions(query: string): Promise<any[] | null>;
+    cacheFacets(key: string, facets: any): Promise<void>;
+    getCachedFacets(key: string): Promise<any | null>;
+    cachePopularSearches(searches: any[]): Promise<void>;
+    getCachedPopularSearches(): Promise<any[] | null>;
+    invalidateSearchCache(key: string): Promise<void>;
+    invalidateByPattern(pattern: string): Promise<void>;
+    invalidateAllSearchCache(): Promise<void>;
+    getCacheStats(): Promise<any>;
+    testConnection(): Promise<boolean>;
+    private buildCacheKey;
+    private getCachePrefix;
+    private hashKey;
+    get(key: string): Promise<string | null>;
+    set(key: string, value: string, ttl?: number): Promise<void>;
+    delete(key: string): Promise<void>;
+    getInfo(): Promise<any>;
+    private parseRedisInfo;
+    onModuleDestroy(): Promise<void>;
+}

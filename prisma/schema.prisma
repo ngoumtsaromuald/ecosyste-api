@@ -38,6 +38,9 @@ model User {
   sessions        Session[]
   auditLogs       AuditLog[]
   passwordResets  PasswordReset[]
+  searchLogs      SearchLog[]
+  searchClicks    SearchClick[]
+  savedSearches   SavedSearch[]
 
   @@map("users")
 }
@@ -102,6 +105,7 @@ model ApiResource {
   hours           BusinessHour[]
   images          ResourceImage[]
   analyticsEvents AnalyticsEvent[]
+  searchClicks    SearchClick[]
 
   @@index([categoryId])
   @@index([latitude, longitude])
@@ -300,4 +304,60 @@ enum SubscriptionStatus {
   ACTIVE
   CANCELLED
   EXPIRED
+}
+
+model SearchLog {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  query        String
+  filters      Json     @default("{}")
+  userId       String?  @map("user_id") @db.Uuid
+  sessionId    String   @map("session_id")
+  userAgent    String?  @map("user_agent")
+  ipAddress    String?  @map("ip_address") @db.Inet
+  resultsCount Int      @map("results_count")
+  took         Int      // Duration in milliseconds
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user   User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  clicks SearchClick[]
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([query, createdAt(sort: Desc)])
+  @@index([sessionId, createdAt(sort: Desc)])
+  @@map("search_logs")
+}
+
+model SearchClick {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  searchLogId  String   @map("search_log_id") @db.Uuid
+  resourceId   String   @map("resource_id") @db.Uuid
+  userId       String?  @map("user_id") @db.Uuid
+  position     Int      // Position in search results (1-based)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  searchLog SearchLog   @relation(fields: [searchLogId], references: [id], onDelete: Cascade)
+  resource  ApiResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([searchLogId])
+  @@index([resourceId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("search_clicks")
+}
+
+model SavedSearch {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  name      String
+  query     String
+  filters   Json     @default("{}")
+  isPublic  Boolean  @default(false) @map("is_public")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([isPublic, createdAt(sort: Desc)])
+  @@map("saved_searches")
 }

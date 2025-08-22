@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Analytics - ROMAPI Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .controls {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .controls label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .controls input, .controls button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .controls button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .controls button:hover {
+            background: #5a6fd8;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metric {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-item .term {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .list-item .count {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
+
+        .recommendation {
+            padding: 1rem;
+            border-left: 4px solid;
+            margin-bottom: 1rem;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .recommendation.high {
+            border-color: #e74c3c;
+            background: #fdf2f2;
+        }
+
+        .recommendation.medium {
+            border-color: #f39c12;
+            background: #fef9e7;
+        }
+
+        .recommendation.low {
+            border-color: #27ae60;
+            background: #eafaf1;
+        }
+
+        .recommendation h4 {
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .recommendation p {
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .recommendation .action {
+            font-style: italic;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+
+        .refresh-info {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Dashboard Analytics</h1>
+        <p>Système de recherche ROMAPI - Métriques et performances</p>
+    </div>
+
+    <div class="container">
+        <div class="controls">
+            <label for="dateFrom">Du :</label>
+            <input type="date" id="dateFrom">
+            
+            <label for="dateTo">Au :</label>
+            <input type="date" id="dateTo">
+            
+            <button onclick="loadDashboard()">🔄 Actualiser</button>
+            <button onclick="exportData()">📥 Exporter</button>
+        </div>
+
+        <div id="error-container"></div>
+        <div id="loading" class="loading" style="display: none;">
+            <p>⏳ Chargement des données...</p>
+        </div>
+
+        <div id="dashboard-content">
+            <!-- Le contenu sera chargé dynamiquement -->
+        </div>
+
+        <div class="refresh-info">
+            <p>Dernière mise à jour : <span id="last-update">-</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Configuration de l'API
+        const API_BASE_URL = '/api/v1/search';
+        
+        // Initialiser les dates par défaut (30 derniers jours)
+        function initializeDates() {
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+            
+            document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+            document.getElementById('dateFrom').value = thirtyDaysAgo.toISOString().split('T')[0];
+        }
+
+        // Charger le dashboard
+        async function loadDashboard() {
+            const loadingEl = document.getElementById('loading');
+            const contentEl = document.getElementById('dashboard-content');
+            const errorEl = document.getElementById('error-container');
+            
+            loadingEl.style.display = 'block';
+            contentEl.innerHTML = '';
+            errorEl.innerHTML = '';
+
+            try {
+                const from = document.getElementById('dateFrom').value;
+                const to = document.getElementById('dateTo').value;
+                
+                const params = new URLSearchParams();
+                if (from) params.append('from', from + 'T00:00:00.000Z');
+                if (to) params.append('to', to + 'T23:59:59.999Z');
+
+                const response = await fetch(`${API_BASE_URL}/analytics/dashboard?${params}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                renderDashboard(data);
+                
+                document.getElementById('last-update').textContent = new Date().toLocaleString('fr-FR');
+                
+            } catch (error) {
+                console.error('Erreur lors du chargement:', error);
+                errorEl.innerHTML = `
+                    <div class="error">
+                        <strong>Erreur:</strong> ${error.message}
+                    </div>
+                `;
+            } finally {
+                loadingEl.style.display = 'none';
+            }
+        }
+
+        // Rendre le dashboard
+        function renderDashboard(data) {
+            const contentEl = document.getElementById('dashboard-content');
+            
+            contentEl.innerHTML = `
+                <div class="dashboard-grid">
+                    <!-- Métriques principales -->
+                    <div class="card">
+                        <h3>🔍 Recherches totales</h3>
+                        <div class="metric">${data.overview.totalSearches.toLocaleString('fr-FR')}</div>
+                        <div class="metric-label">Requêtes effectuées</div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>⚡ Temps de réponse</h3>
+                        <div class="metric">${Math.round(data.overview.averageResponseTime)}ms</div>
+                        <div class="metric-label">Temps moyen</div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>👆 Taux de clic</h3>
+                        <div class="metric">${data.overview.clickThroughRate.toFixed(1)}%</div>
+                        <div class="metric-label">Clics sur résultats</div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>❌ Sans résultats</h3>
+                        <div class="metric">${data.overview.noResultsRate.toFixed(1)}%</div>
+                        <div class="metric-label">Requêtes vides</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Termes populaires -->
+                    <div class="card">
+                        <h3>🔥 Termes populaires</h3>
+                        <div id="popular-terms">
+                            ${data.popularTerms.map(term => `
+                                <div class="list-item">
+                                    <span class="term">${term.term}</span>
+                                    <span class="count">${term.count} (${term.percentage.toFixed(1)}%)</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Requêtes sans résultats -->
+                    <div class="card">
+                        <h3>🚫 Requêtes sans résultats</h3>
+                        <div id="no-results">
+                            ${data.noResultsQueries.map(query => `
+                                <div class="list-item">
+                                    <span class="term">${query.query}</span>
+                                    <span class="count">${query.count}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommandations -->
+                <div class="card">
+                    <h3>💡 Recommandations</h3>
+                    <div id="recommendations">
+                        ${data.recommendations.map(rec => `
+                            <div class="recommendation ${rec.priority}">
+                                <h4>${rec.title}</h4>
+                                <p>${rec.description}</p>
+                                <div class="action">Action recommandée: ${rec.action}</div>
+                            </div>
+                        `).join('')}
+                        ${data.recommendations.length === 0 ? '<p>Aucune recommandation pour le moment. Excellent travail ! 🎉</p>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Exporter les données
+        async function exportData() {
+            try {
+                const from = document.getElementById('dateFrom').value;
+                const to = document.getElementById('dateTo').value;
+                
+                const params = new URLSearchParams();
+                if (from) params.append('from', from + 'T00:00:00.000Z');
+                if (to) params.append('to', to + 'T23:59:59.999Z');
+
+                const response = await fetch(`${API_BASE_URL}/analytics/dashboard?${params}`);
+                const data = await response.json();
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `analytics-${from || 'all'}-to-${to || 'now'}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                alert('Erreur lors de l\'export: ' + error.message);
+            }
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDates();
+            loadDashboard();
+            
+            // Auto-refresh toutes les 5 minutes
+            setInterval(loadDashboard, 5 * 60 * 1000);
+        });
+    </script>
+</body>
+</html>

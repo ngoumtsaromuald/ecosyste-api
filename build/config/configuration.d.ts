@@ -3,6 +3,7 @@ export interface AppConfig {
     nodeEnv: string;
     database: DatabaseConfig;
     redis: RedisConfig;
+    elasticsearch: ElasticsearchConfig;
     jwt: JwtConfig;
     api: ApiConfig;
     rateLimit: RateLimitConfig;
@@ -26,6 +27,26 @@ export interface RedisConfig {
     port: number;
     password?: string;
     db: number;
+}
+export interface ElasticsearchConfig {
+    host: string;
+    port: number;
+    username?: string;
+    password?: string;
+    indexPrefix: string;
+    maxRetries: number;
+    requestTimeout: number;
+    indices: {
+        resources: string;
+        suggestions: string;
+    };
+    search: {
+        cacheTtl: number;
+        suggestionsCacheTtl: number;
+        facetsCacheTtl: number;
+        maxResults: number;
+        defaultSize: number;
+    };
 }
 export interface JwtConfig {
     secret: string;

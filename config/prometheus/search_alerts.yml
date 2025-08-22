@@ -1,0 +1,170 @@
+groups:
+  - name: search_performance
+    rules:
+      - alert: HighSearchLatency
+        expr: histogram_quantile(0.95, rate(search_duration_seconds_bucket[5m])) > 2
+        for: 2m
+        labels:
+          severity: warning
+          service: romapi-search
+        annotations:
+          summary: "High search latency detected"
+          description: "95th percentile search latency is {{ $value }}s, which is above the 2s threshold"
+
+      - alert: VeryHighSearchLatency
+        expr: histogram_quantile(0.95, rate(search_duration_seconds_bucket[5m])) > 5
+        for: 1m
+        labels:
+          severity: critical
+          service: romapi-search
+        annotations:
+          summary: "Very high search latency detected"
+          description: "95th percentile search latency is {{ $value }}s, which is critically high"
+
+      - alert: HighSearchErrorRate
+        expr: rate(search_errors_total[5m]) / rate(search_requests_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          service: romapi-search
+        annotations:
+          summary: "High search error rate"
+          description: "Search error rate is {{ $value | humanizePercentage }}, which is above 5%"
+
+      - alert: CriticalSearchErrorRate
+        expr: rate(search_errors_total[5m]) / rate(search_requests_total[5m]) > 0.20
+        for: 1m
+        labels:
+          severity: critical
+          service: romapi-search
+        annotations:
+          summary: "Critical search error rate"
+          description: "Search error rate is {{ $value | humanizePercentage }}, which is critically high"
+
+      - alert: LowCacheHitRate
+        expr: rate(search_cache_hits_total[5m]) / (rate(search_cache_hits_total[5m]) + rate(search_cache_misses_total[5m])) < 0.70
+        for: 5m
+        labels:
+          severity: warning
+          service: romapi-search
+        annotations:
+          summary: "Low cache hit rate"
+          description: "Search cache hit rate is {{ $value | humanizePercentage }}, which is below 70%"
+
+      - alert: NoSearchRequests
+        expr: rate(search_requests_total[5m]) == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: romapi-search
+        annotations:
+          summary: "No search requests received"
+          description: "No search requests have been received in the last 5 minutes"
+
+  - name: search_availability
+    rules:
+      - alert: SearchServiceDown
+        expr: up{job="romapi-search"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: romapi-search
+        annotations:
+          summary: "Search service is down"
+          description: "The ROMAPI search service is not responding to health checks"
+
+      - alert: ElasticsearchDown
+        expr: up{job="elasticsearch"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: elasticsearch
+        annotations:
+          summary: "Elasticsearch is down"
+          description: "Elasticsearch is not responding, search functionality will be impacted"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.90
+        for: 2m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }}, which is above 90%"
+
+  - name: search_business_metrics
+    rules:
+      - alert: HighNoResultsRate
+        expr: rate(search_requests_total{results_count="0"}[10m]) / rate(search_requests_total[10m]) > 0.30
+        for: 5m
+        labels:
+          severity: warning
+          service: romapi-search
+        annotations:
+          summary: "High no-results rate"
+          description: "{{ $value | humanizePercentage }} of searches return no results, indicating potential search quality issues"
+
+      - alert: UnusualSearchVolume
+        expr: rate(search_requests_total[5m]) > 100
+        for: 2m
+        labels:
+          severity: warning
+          service: romapi-search
+        annotations:
+          summary: "Unusual search volume"
+          description: "Search request rate is {{ $value }} requests/second, which is unusually high"
+
+      - alert: LowSearchVolume
+        expr: rate(search_requests_total[5m]) < 0.1
+        for: 10m
+        labels:
+          severity: info
+          service: romapi-search
+        annotations:
+          summary: "Low search volume"
+          description: "Search request rate is {{ $value }} requests/second, which is unusually low"
+
+  - name: search_debug_alerts
+    rules:
+      - alert: HighDebugModeUsage
+        expr: rate(search_debug_requests_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: info
+          service: romapi-search
+        annotations:
+          summary: "High debug mode usage"
+          description: "Debug mode is being used frequently ({{ $value }} requests/second), check if this is intentional"
+
+      - alert: FrequentSlowQueries
+        expr: increase(search_duration_seconds_bucket{le="1.0"}[5m]) / increase(search_duration_seconds_count[5m]) < 0.80
+        for: 5m
+        labels:
+          severity: warning
+          service: romapi-search
+        annotations:
+          summary: "Frequent slow queries"
+          description: "Only {{ $value | humanizePercentage }} of queries complete within 1 second"
+
+  - name: search_security_alerts
+    rules:
+      - alert: HighRateLimitHits
+        expr: rate(search_rate_limit_exceeded_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+          service: romapi-search
+        annotations:
+          summary: "High rate limit violations"
+          description: "Rate limiting is being triggered {{ $value }} times per second"
+
+      - alert: SuspiciousSearchPatterns
+        expr: rate(search_security_events_total{event="suspicious_query"}[5m]) > 1
+        for: 1m
+        labels:
+          severity: warning
+          service: romapi-search
+        annotations:
+          summary: "Suspicious search patterns detected"
+          description: "{{ $value }} suspicious search queries detected per second"

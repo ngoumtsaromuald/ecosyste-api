@@ -9,6 +9,7 @@ import { RedisModule } from './config/redis.module';
 import { CacheModule } from './config/cache.module';
 import { LoggerModule } from './config/logger.module';
 import { AuthModule } from './auth/auth.module';
+import { SearchModule } from './modules/search/search.module';
 import { ApiResourceController } from './controllers/api-resource.controller';
 import { CategoryController } from './controllers/category.controller';
 import { MetricsController } from './controllers/metrics.controller';
@@ -30,12 +31,13 @@ import { ResponseInterceptor } from './interceptors/response.interceptor';
 import { MetricsInterceptor } from './interceptors/metrics.interceptor';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import configuration from './config/configuration';
+import elasticsearchConfig from './config/elasticsearch.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [configuration],
+      load: [configuration, elasticsearchConfig],
       envFilePath: ['.env.local', '.env'],
     }),
     ThrottlerModule.forRoot([
@@ -49,6 +51,7 @@ import configuration from './config/configuration';
     CacheModule,
     LoggerModule,
     AuthModule,
+    SearchModule,
   ],
   controllers: [AppController, ApiResourceController, CategoryController, MetricsController, HealthController],
   providers: [

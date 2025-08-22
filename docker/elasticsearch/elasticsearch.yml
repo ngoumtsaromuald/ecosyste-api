@@ -1,0 +1,38 @@
+# Elasticsearch Configuration for ROMAPI Search System
+cluster.name: romapi-search-cluster
+node.name: romapi-es-node
+
+# Network settings
+network.host: 0.0.0.0
+http.port: 9200
+transport.port: 9300
+
+# Discovery settings for single node
+discovery.type: single-node
+
+# Memory settings
+bootstrap.memory_lock: true
+
+# Security settings (disabled for development)
+xpack.security.enabled: false
+xpack.security.enrollment.enabled: false
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false
+
+# Monitoring settings
+xpack.monitoring.collection.enabled: false
+
+# Index settings
+action.auto_create_index: true
+action.destructive_requires_name: true
+
+# Logging
+logger.level: INFO
+logger.org.elasticsearch.discovery: WARN
+
+# Performance settings
+indices.memory.index_buffer_size: 20%
+indices.memory.min_index_buffer_size: 96mb
+
+# French language support
+plugin.mandatory: analysis-icu

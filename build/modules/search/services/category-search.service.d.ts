@@ -1,0 +1,32 @@
+import { ConfigService } from '@nestjs/config';
+import { CategorySearchParams, CategorySearchResults, CategoryInfo, CategoryBreadcrumb, CategoryHierarchy, CategoryHierarchyParams, CategoryStats } from '../interfaces/category-search.interfaces';
+import { SearchCacheService } from './search-cache.service';
+import { CategoryRepository } from '../../../repositories/category.repository';
+import { ElasticsearchService } from './elasticsearch.service';
+export declare class CategorySearchService {
+    private readonly categoryRepository;
+    private readonly cacheService;
+    private readonly elasticsearchService;
+    private readonly configService;
+    private readonly logger;
+    constructor(categoryRepository: CategoryRepository, cacheService: SearchCacheService, elasticsearchService: ElasticsearchService, configService: ConfigService);
+    searchByCategory(categoryId: string, params: CategorySearchParams): Promise<CategorySearchResults>;
+    getCategoryHierarchy(params: CategoryHierarchyParams): Promise<CategoryHierarchy>;
+    getCategoryBySlug(slug: string): Promise<CategoryInfo | null>;
+    getCategoryInfo(categoryId: string, includeCounts?: boolean): Promise<CategoryInfo | null>;
+    getSubcategoriesWithCounts(categoryId: string, includeSubcategories?: boolean, maxDepth?: number): Promise<CategoryInfo[]>;
+    buildCategoryBreadcrumbs(categoryId: string): Promise<CategoryBreadcrumb[]>;
+    getCategoryStats(categoryId: string): Promise<CategoryStats>;
+    private buildCategorySearchParams;
+    private getAllSubcategoryIds;
+    private calculateCategoryLevel;
+    private buildCategoryPath;
+    private getCategoryAncestors;
+    private getCategorySiblings;
+    private getCategoryChildren;
+    private getRootCategories;
+    private performElasticsearchSearch;
+    private buildElasticsearchQuery;
+    private transformElasticsearchResponse;
+    private generateCategoryCacheKey;
+}

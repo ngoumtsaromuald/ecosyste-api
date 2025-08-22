@@ -1,0 +1,61 @@
+# Search Indexer Dockerfile
+# Optimized for running scheduled indexing tasks
+
+FROM node:18-alpine AS base
+
+# Install system dependencies
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    tzdata \
+    cronie
+
+# Set timezone
+ENV TZ=UTC
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Generate Prisma client
+RUN npx prisma generate
+
+# Copy application code
+COPY dist ./dist/
+COPY config ./config/
+COPY scripts/search-indexer-cron.sh ./scripts/
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S searchindexer -u 1001 -G nodejs
+
+# Create directories and set permissions
+RUN mkdir -p /app/logs/search && \
+    mkdir -p /var/log/cron && \
+    chown -R searchindexer:nodejs /app/logs && \
+    chmod +x /app/scripts/search-indexer-cron.sh
+
+# Setup cron job
+RUN echo "${INDEXER_SCHEDULE:-0 */6 * * *} /app/scripts/search-indexer-cron.sh >> /var/log/cron/indexer.log 2>&1" > /etc/crontabs/searchindexer
+
+# Switch to non-root user
+USER searchindexer
+
+# Health check
+HEALTHCHECK --interval=60s --timeout=15s --start-period=120s --retries=3 \
+    CMD curl -f http://localhost:3002/health || exit 1
+
+# Expose port for health checks
+EXPOSE 3002
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start cron and the indexer service
+CMD ["sh", "-c", "crond -f -d 8 & node dist/workers/search-indexer.js"]

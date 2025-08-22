@@ -97,22 +97,106 @@ deploy_docker() {
         export $(cat "config/environments/.env.${ENVIRONMENT}" | grep -v '^#' | xargs)
     fi
     
+    # Load search-specific configuration
+    if [[ -f "config/environments/.env.search.${ENVIRONMENT}" ]]; then
+        export $(cat "config/environments/.env.search.${ENVIRONMENT}" | grep -v '^#' | xargs)
+    fi
+    
+    # Create data directories
+    mkdir -p "${ELASTICSEARCH_DATA_PATH:-./data/elasticsearch}"
+    mkdir -p "${REDIS_SEARCH_DATA_PATH:-./data/redis-search}"
+    mkdir -p "${SEARCH_LOGS_PATH:-./logs/search}"
+    mkdir -p "${SEARCH_BACKUPS_PATH:-./backups/search}"
+    
+    # Set proper permissions
+    chmod 755 "${ELASTICSEARCH_DATA_PATH:-./data/elasticsearch}"
+    chmod 755 "${REDIS_SEARCH_DATA_PATH:-./data/redis-search}"
+    
     # Stop existing containers
-    docker-compose -f docker-compose.prod.yml down
+    echo -e "${YELLOW}🛑 Stopping existing containers...${NC}"
+    docker-compose -f docker-compose.prod.yml -f docker-compose.search.yml down
+    
+    # Pull latest images
+    echo -e "${YELLOW}📥 Pulling latest images...${NC}"
+    docker-compose -f docker-compose.prod.yml -f docker-compose.search.yml pull
     
     # Build and start new containers
-    docker-compose -f docker-compose.prod.yml up -d --build
+    echo -e "${YELLOW}🔨 Building and starting containers...${NC}"
+    docker-compose -f docker-compose.prod.yml -f docker-compose.search.yml up -d --build
     
-    # Wait for services to be healthy
-    echo -e "${YELLOW}⏳ Waiting for services to be healthy...${NC}"
-    sleep 30
+    # Wait for core services to be healthy
+    echo -e "${YELLOW}⏳ Waiting for core services to be healthy...${NC}"
+    wait_for_service "postgres" "PostgreSQL"
+    wait_for_service "redis" "Redis"
+    wait_for_service "elasticsearch" "Elasticsearch"
+    wait_for_service "redis-search" "Redis Search"
     
-    # Check health
-    if curl -f http://localhost:${PORT:-3000}/api/v1/health > /dev/null 2>&1; then
-        echo -e "${GREEN}✅ Application is healthy${NC}"
+    # Wait for application to be healthy
+    echo -e "${YELLOW}⏳ Waiting for application to be healthy...${NC}"
+    wait_for_service "app" "Application"
+    
+    # Check search services
+    echo -e "${YELLOW}🔍 Checking search services...${NC}"
+    check_search_services
+    
+    echo -e "${GREEN}✅ All services are healthy${NC}"
+}
+
+# Wait for service to be healthy
+wait_for_service() {
+    local service_name="$1"
+    local display_name="$2"
+    local max_attempts=30
+    local attempt=0
+    
+    while [[ $attempt -lt $max_attempts ]]; do
+        if docker-compose -f docker-compose.prod.yml -f docker-compose.search.yml ps "$service_name" | grep -q "healthy\|Up"; then
+            echo -e "${GREEN}✅ $display_name is healthy${NC}"
+            return 0
+        fi
+        
+        attempt=$((attempt + 1))
+        echo -e "${YELLOW}⏳ Waiting for $display_name... (attempt $attempt/$max_attempts)${NC}"
+        sleep 10
+    done
+    
+    echo -e "${RED}❌ $display_name failed to become healthy${NC}"
+    return 1
+}
+
+# Check search services
+check_search_services() {
+    local base_url="http://localhost:${PORT:-3000}"
+    
+    # Check application health
+    if curl -f -s "$base_url/api/v1/health" > /dev/null; then
+        echo -e "${GREEN}✅ Application health check passed${NC}"
     else
         echo -e "${RED}❌ Application health check failed${NC}"
         exit 1
+    fi
+    
+    # Check Elasticsearch
+    if curl -f -s "http://localhost:${ELASTICSEARCH_PORT:-9200}/_cluster/health" > /dev/null; then
+        echo -e "${GREEN}✅ Elasticsearch is responding${NC}"
+    else
+        echo -e "${RED}❌ Elasticsearch health check failed${NC}"
+        exit 1
+    fi
+    
+    # Check Redis Search
+    if docker exec romapi-redis-search redis-cli --no-auth-warning -a "${REDIS_SEARCH_PASSWORD}" ping | grep -q "PONG"; then
+        echo -e "${GREEN}✅ Redis Search is responding${NC}"
+    else
+        echo -e "${RED}❌ Redis Search health check failed${NC}"
+        exit 1
+    fi
+    
+    # Check search endpoints
+    if curl -f -s "$base_url/api/v1/search/health" > /dev/null; then
+        echo -e "${GREEN}✅ Search API is responding${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Search API health check inconclusive${NC}"
     fi
 }
 

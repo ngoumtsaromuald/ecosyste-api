@@ -1,0 +1,113 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+  
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['0.0.0.0:8888']
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+    send_batch_max_size: 2048
+
+  memory_limiter:
+    limit_mib: 512
+
+  resource:
+    attributes:
+      - key: service.name
+        value: romapi-search
+        action: upsert
+      - key: service.version
+        value: 1.0.0
+        action: upsert
+      - key: deployment.environment
+        from_attribute: environment
+        action: upsert
+
+  # Add search-specific attributes
+  attributes:
+    actions:
+      - key: search.operation
+        from_attribute: operation
+        action: upsert
+      - key: search.user_id
+        from_attribute: user_id
+        action: upsert
+      - key: search.query
+        from_attribute: query
+        action: upsert
+      - key: search.results_count
+        from_attribute: results_count
+        action: upsert
+
+  # Filter sensitive data
+  filter:
+    traces:
+      span:
+        - 'attributes["user.email"] != nil'
+        - 'attributes["user.password"] != nil'
+        - 'attributes["authorization"] != nil'
+
+exporters:
+  # Jaeger for traces
+  jaeger:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+
+  # Prometheus for metrics
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: romapi_search
+    const_labels:
+      service: romapi-search
+
+  # Logging exporter for debugging
+  logging:
+    loglevel: info
+
+  # OTLP exporter for additional backends
+  otlp:
+    endpoint: http://jaeger:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, attributes, batch]
+      exporters: [jaeger, logging]
+
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, resource, batch]
+      exporters: [prometheus, logging]
+
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [logging]
+
+  extensions: [health_check, pprof, zpages]
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  
+  pprof:
+    endpoint: 0.0.0.0:1777
+  
+  zpages:
+    endpoint: 0.0.0.0:55679

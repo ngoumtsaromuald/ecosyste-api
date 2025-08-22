@@ -1,0 +1,199 @@
+# Search System Docker Compose Configuration
+# This file extends the main docker-compose.yml with search-specific services
+version: '3.8'
+
+services:
+  # Elasticsearch for Search (Production Optimized)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: romapi-elasticsearch-search
+    restart: always
+    environment:
+      - node.name=romapi-search-node
+      - cluster.name=romapi-search-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+      - indices.query.bool.max_clause_count=10000
+      - search.max_buckets=65536
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=85%
+      - cluster.routing.allocation.disk.watermark.high=90%
+      - cluster.routing.allocation.disk.watermark.flood_stage=95%
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - elasticsearch_search_data:/usr/share/elasticsearch/data
+      - ./config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - ./config/elasticsearch/index-mappings.json:/usr/share/elasticsearch/config/index-mappings.json:ro
+      - ./config/elasticsearch/analyzers.json:/usr/share/elasticsearch/config/analyzers.json:ro
+    ports:
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+      - "9300:9300"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=10s || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 60s
+    networks:
+      - search-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # Redis for Search Cache and Analytics
+  redis-search:
+    image: redis:7-alpine
+    container_name: romapi-redis-search
+    restart: always
+    environment:
+      REDIS_PASSWORD: ${REDIS_SEARCH_PASSWORD}
+    ports:
+      - "${REDIS_SEARCH_PORT:-6380}:6379"
+    volumes:
+      - redis_search_data:/data
+      - ./config/redis/redis-search.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_SEARCH_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - search-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # Search Analytics Worker (Bull Queue Processor)
+  search-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.search-worker
+    container_name: romapi-search-worker
+    restart: always
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_HOST: redis-search
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_SEARCH_PASSWORD}
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: 9200
+      WORKER_CONCURRENCY: ${SEARCH_WORKER_CONCURRENCY:-5}
+      WORKER_MAX_JOBS: ${SEARCH_WORKER_MAX_JOBS:-100}
+      LOG_LEVEL: ${SEARCH_WORKER_LOG_LEVEL:-info}
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      redis-search:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./logs/search:/app/logs/search
+    networks:
+      - search-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # Search Index Manager (Scheduled Tasks)
+  search-indexer:
+    build:
+      context: .
+      dockerfile: Dockerfile.search-indexer
+    container_name: romapi-search-indexer
+    restart: always
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL}
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: 9200
+      INDEXER_SCHEDULE: ${SEARCH_INDEXER_SCHEDULE:-0 */6 * * *}
+      INDEXER_BATCH_SIZE: ${SEARCH_INDEXER_BATCH_SIZE:-1000}
+      LOG_LEVEL: ${SEARCH_INDEXER_LOG_LEVEL:-info}
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./logs/search:/app/logs/search
+    networks:
+      - search-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+volumes:
+  elasticsearch_search_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${ELASTICSEARCH_DATA_PATH:-./data/elasticsearch}
+  redis_search_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${REDIS_SEARCH_DATA_PATH:-./data/redis-search}
+
+networks:
+  search-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

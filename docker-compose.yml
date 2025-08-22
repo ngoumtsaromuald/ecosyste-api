@@ -37,6 +37,38 @@ services:
       timeout: 5s
       retries: 5
 
+  # Elasticsearch for Search
+  elasticsearch:
+    build:
+      context: ./docker/elasticsearch
+      dockerfile: Dockerfile
+    container_name: romapi-elasticsearch
+    restart: unless-stopped
+    environment:
+      - node.name=romapi-es-node
+      - cluster.name=romapi-search-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - xpack.security.transport.ssl.enabled=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
   # Application (for production)
   app:
     build:
@@ -51,10 +83,14 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/romapi_core?schema=public
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: 9200
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
     volumes:
       - ./logs:/app/logs
@@ -68,6 +104,8 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  elasticsearch_data:
     driver: local
 
 networks:
