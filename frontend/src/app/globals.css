@@ -1,0 +1,204 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-jetbrains-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+    
+    /* Base Colors */
+    --background: oklch(0.98 0.005 220);
+    --foreground: oklch(0.15 0.02 220);
+    --card: oklch(0.99 0.002 220);
+    --card-foreground: oklch(0.15 0.02 220);
+    --popover: oklch(0.99 0.002 220);
+    --popover-foreground: oklch(0.15 0.02 220);
+    --primary: oklch(0.55 0.15 220);
+    --primary-foreground: oklch(0.98 0.005 220);
+    --secondary: oklch(0.94 0.02 220);
+    --secondary-foreground: oklch(0.20 0.02 220);
+    --muted: oklch(0.96 0.01 220);
+    --muted-foreground: oklch(0.45 0.02 220);
+    --accent: oklch(0.92 0.03 220);
+    --accent-foreground: oklch(0.25 0.02 220);
+    --destructive: oklch(0.65 0.20 25);
+    --destructive-foreground: oklch(0.98 0.005 25);
+    --success: oklch(0.55 0.15 140);
+    --success-foreground: oklch(0.98 0.005 140);
+    --warning: oklch(0.70 0.18 60);
+    --warning-foreground: oklch(0.98 0.005 60);
+    --info: oklch(0.60 0.12 160);
+    --info-foreground: oklch(0.98 0.005 160);
+    --border: oklch(0.90 0.01 220);
+    --input: oklch(0.94 0.02 220);
+    --ring: oklch(0.55 0.15 220);
+    --radius: 0.5rem;
+    
+    /* Chart Colors */
+    --chart-1: oklch(0.55 0.15 220);
+    --chart-2: oklch(0.60 0.12 160);
+    --chart-3: oklch(0.70 0.18 45);
+    --chart-4: oklch(0.65 0.15 280);
+    --chart-5: oklch(0.60 0.18 320);
+    
+    /* Sidebar */
+    --sidebar: oklch(0.96 0.01 220);
+    --sidebar-foreground: oklch(0.20 0.02 220);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: oklch(0.98 0.005 220);
+    --sidebar-accent: oklch(0.94 0.02 220);
+    --sidebar-accent-foreground: oklch(0.25 0.02 220);
+    --sidebar-border: oklch(0.90 0.01 220);
+    --sidebar-ring: var(--primary);
+  }
+
+  .dark {
+    --background: oklch(0.08 0.01 220);
+    --foreground: oklch(0.95 0.005 220);
+    --card: oklch(0.12 0.01 220);
+    --card-foreground: oklch(0.95 0.005 220);
+    --popover: oklch(0.12 0.01 220);
+    --popover-foreground: oklch(0.95 0.005 220);
+    --primary: oklch(0.70 0.15 220);
+    --primary-foreground: oklch(0.08 0.01 220);
+    --secondary: oklch(0.18 0.01 220);
+    --secondary-foreground: oklch(0.90 0.005 220);
+    --muted: oklch(0.16 0.01 220);
+    --muted-foreground: oklch(0.65 0.02 220);
+    --accent: oklch(0.20 0.02 220);
+    --accent-foreground: oklch(0.90 0.005 220);
+    --destructive: oklch(0.70 0.20 25);
+    --destructive-foreground: oklch(0.95 0.005 25);
+    --success: oklch(0.65 0.15 140);
+    --success-foreground: oklch(0.08 0.01 140);
+    --warning: oklch(0.75 0.18 60);
+    --warning-foreground: oklch(0.08 0.01 60);
+    --info: oklch(0.70 0.12 160);
+    --info-foreground: oklch(0.08 0.01 160);
+    --border: oklch(0.25 0.01 220);
+    --input: oklch(0.22 0.01 220);
+    --ring: oklch(0.70 0.15 220);
+    
+    --chart-1: oklch(0.70 0.15 220);
+    --chart-2: oklch(0.70 0.12 160);
+    --chart-3: oklch(0.75 0.18 45);
+    --chart-4: oklch(0.70 0.15 280);
+    --chart-5: oklch(0.65 0.18 320);
+    
+    --sidebar: oklch(0.10 0.01 220);
+    --sidebar-foreground: oklch(0.90 0.005 220);
+    --sidebar-primary: oklch(0.70 0.15 220);
+    --sidebar-primary-foreground: oklch(0.08 0.01 220);
+    --sidebar-accent: oklch(0.18 0.02 220);
+    --sidebar-accent-foreground: oklch(0.90 0.005 220);
+    --sidebar-border: oklch(0.25 0.01 220);
+    --sidebar-ring: oklch(0.70 0.15 220);
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    text-rendering: optimizeLegibility;
+  }
+  
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-muted/30;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+}
+
+@layer components {
+  .hero-section {
+    background: linear-gradient(135deg, 
+      hsl(var(--background)) 0%, 
+      hsl(var(--muted) / 0.3) 50%, 
+      hsl(var(--background)) 100%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, 
+      hsl(var(--primary)), 
+      hsl(var(--secondary)), 
+      hsl(var(--accent)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .button-primary {
+    background: linear-gradient(135deg, 
+      hsl(var(--primary)), 
+      hsl(var(--secondary)));
+    @apply text-white border-0 shadow-md hover:shadow-lg transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 ease-out hover:shadow-xl hover:-translate-y-1;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.8s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
